@@ -18,26 +18,22 @@ package com.example.inventory.data
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
-/**
- * Database access object to access the Inventory database
- */
+
 @Dao
-interface ItemDao {
+interface UserDao {
 
     @Query("SELECT * from data ORDER BY login ASC")
-    fun getItems(): Flow<List<Item>>
+    fun getUsers(): Flow<List<User>>
 
     @Query("SELECT * from data WHERE id = :id")
-    fun getItem(id: Int): Flow<Item>
+    fun getUser(id: Int): Flow<User>
 
-    // Specify the conflict strategy as IGNORE, when the user tries to add an
-    // existing Item into the database Room ignores the conflict.
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(item: Item)
+    suspend fun insert(user: User)
 
     @Update
-    suspend fun update(item: Item)
+    suspend fun update(user: User)
 
     @Delete
-    suspend fun delete(item: Item)
+    suspend fun delete(user: User)
 }

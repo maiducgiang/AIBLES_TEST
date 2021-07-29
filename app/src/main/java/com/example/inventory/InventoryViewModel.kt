@@ -1,109 +1,132 @@
-/*
- * Copyright (C) 2021 The Android Open Source Project.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+
 
 package com.example.inventory
 
+import android.util.Log
 import androidx.lifecycle.*
-import com.example.inventory.data.Item
-import com.example.inventory.data.ItemDao
+import com.example.inventory.data.User
+import com.example.inventory.data.UserDao
+import com.example.inventory.internet.UserService
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
-/**
- * View Model to keep a reference to the Inventory repository and an up-to-date list of all items.
- *
- */
-class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
+class InventoryViewModel(private val userDao: UserDao) : ViewModel() {
 
-    val allItems: LiveData<List<Item>> = itemDao.getItems().asLiveData()
+    val allUsers: LiveData<List<User>> = userDao.getUsers().asLiveData()
 
-    fun isStockAvailable(item: Item): Boolean {
+    fun isStockAvailable(user: User): Boolean {
         return true
     }
 
-    fun updateItem(
-        itemId: Int,
-        itemName: String,
-        itemPrice: String,
-        itemCount: String
+    fun updateUser(
+        id: Int,
+        userLogin: String,
+        userType: String,
+        userUrl: String
     ) {
-        val updatedItem = getUpdatedItemEntry(itemId, itemName, itemPrice, itemCount)
-        updateItem(updatedItem)
+        val updatedUser = getUpdatedUserEntry(id, userLogin, userType, userUrl)
+        updateUser(updatedUser)
     }
 
-    private fun updateItem(item: Item) {
+    private fun updateUser(user: User) {
         viewModelScope.launch {
-            itemDao.update(item)
+            userDao.update(user)
         }
     }
-    fun sellItem(item: Item) {
-        updateItem(item)
+    fun sellUser(user: User) {
+        updateUser(user)
     }
-    fun addNewItem(itemName: String, itemPrice: String, itemCount: String) {
-        val newItem = getNewItemEntry(itemName, itemPrice, itemCount)
-        insertItem(newItem)
+    fun addNewUser(userLogin: String,
+                   userType: String,
+                   userUrl: String) {
+        //getAllUser()
+        val newUser = getNewUserEntry(userLogin, userType, userUrl)
+        insertUser(newUser)
     }
-    private fun insertItem(item: Item) {
+    private fun insertUser(user: User) {
+        Log.d("check", "insert")
         viewModelScope.launch {
-            itemDao.insert(item)
+            userDao.insert(user)
         }
     }
 
-    fun deleteItem(item: Item) {
+    fun deleteUser(user: User) {
         viewModelScope.launch {
-            itemDao.delete(item)
+            userDao.delete(user)
         }
     }
-    fun retrieveItem(id: Int): LiveData<Item> {
-        return itemDao.getItem(id).asLiveData()
+    fun retrieveUser(id: Int): LiveData<User> {
+        return userDao.getUser(id).asLiveData()
     }
 
-    fun isEntryValid(itemName: String, itemPrice: String, itemCount: String): Boolean {
-        if (itemName.isBlank() || itemPrice.isBlank() || itemCount.isBlank()) {
+    fun isEntryValid(userLogin: String,
+                     userType: String,
+                     userUrl: String): Boolean {
+        if (userLogin.isBlank() || userType.isBlank() || userUrl.isBlank()) {
             return false
         }
         return true
     }
-    private fun getNewItemEntry(itemName: String, itemPrice: String, itemCount: String): Item {
-        return Item(
-            itemName = itemName,
-            itemPrice = itemPrice,
-            quantityInStock = itemCount
+    private fun getNewUserEntry(userLogin: String,
+                                userType: String,
+                                userUrl: String): User {
+        return User(
+            userLogin = userLogin,
+            userType = userType,
+            userUrl = userUrl
         )
     }
 
-    private fun getUpdatedItemEntry(
-        itemId: Int,
-        itemName: String,
-        itemPrice: String,
-        itemCount: String
-    ): Item {
-        return Item(
-            id = itemId,
-            itemName = itemName,
-            itemPrice = itemPrice,
-            quantityInStock = itemCount
+    private fun getUpdatedUserEntry(
+        id: Int,
+        userLogin: String,
+        userType: String,
+        userUrl: String
+    ): User {
+        return User(
+            id = id,
+            userLogin = userLogin,
+            userType = userType,
+            userUrl = userUrl
         )
+    }
+    //Service
+    val logging = HttpLoggingInterceptor().apply {
+        setLevel(HttpLoggingInterceptor.Level.BODY)
+    }
+
+    val client = OkHttpClient.Builder()
+        .addInterceptor(logging)
+        .build()
+
+    val retrofit = Retrofit.Builder()
+        .baseUrl("https://api.github.com/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .client(client)
+        .build()
+    val service = retrofit.create(UserService::class.java)
+
+    fun getAllUser() {
+        Log.d("check"," getAllUser")
+        viewModelScope.async {
+            Log.d("check ","size")
+            val result = service.getAllUsers()
+            for (i in result){
+                insertUser(i)
+            }
+        }
     }
 }
 
-class InventoryViewModelFactory(private val itemDao: ItemDao) : ViewModelProvider.Factory {
+class InventoryViewModelFactory(private val userDao: UserDao) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(InventoryViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return InventoryViewModel(itemDao) as T
+            return InventoryViewModel(userDao) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

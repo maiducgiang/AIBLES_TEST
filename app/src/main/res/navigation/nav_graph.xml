@@ -17,48 +17,54 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@id/itemListFragment">
+    app:startDestination="@id/userListFragment">
 
     <fragment
-        android:id="@+id/itemListFragment"
-        android:name="com.example.inventory.ItemListFragment"
-        android:label="@string/app_name"
-        tools:layout="@layout/item_list_fragment">
-        <action
-            android:id="@+id/action_itemListFragment_to_itemDetailFragment"
-            app:destination="@id/itemDetailFragment" />
-        <action
-            android:id="@+id/action_itemListFragment_to_addItemFragment"
-            app:destination="@id/addItemFragment" />
-    </fragment>
-    <fragment
-        android:id="@+id/itemDetailFragment"
-        android:name="com.example.inventory.ItemDetailFragment"
-        android:label="@string/item_detail_fragment_title"
-        tools:layout="@layout/fragment_item_detail">
-        <argument
-            android:name="item_id"
-            app:argType="integer" />
-        <action
-            android:id="@+id/action_itemDetailFragment_to_addItemFragment"
-            app:destination="@id/addItemFragment" />
-    </fragment>
-    <fragment
-        android:id="@+id/addItemFragment"
-        android:name="com.example.inventory.AddItemFragment"
-        android:label="{title}"
-        tools:layout="@layout/fragment_add_item">
+        android:id="@+id/addUserFragment"
+        android:name="com.example.inventory.fragment.AddUserFragment"
+        android:label="AddUserFragment" >
         <argument
             android:name="title"
             app:argType="string" />
         <argument
-            android:name="item_id"
+            android:name="user_id"
             android:defaultValue="-1"
             app:argType="integer" />
         <action
-            android:id="@+id/action_addItemFragment_to_itemListFragment"
-            app:destination="@id/itemListFragment"
-            app:popUpTo="@id/itemListFragment"
-            app:popUpToInclusive="true" />
+            android:id="@+id/action_addUserFragment_to_userListFragment"
+            app:destination="@id/userListFragment" />
+        <action
+            android:id="@+id/action_addUserFragment_to_detailUserFragment"
+            app:destination="@id/detailUserFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/detailUserFragment"
+        android:name="com.example.inventory.fragment.DetailUserFragment"
+        android:label="DetailUserFragment" >
+        <argument
+            android:name="user_id"
+            app:argType="integer" />
+    </fragment>
+    <fragment
+        android:id="@+id/userListFragment"
+        android:name="com.example.inventory.fragment.UserListFragment"
+        android:label="UserListFragment" >
+        <action
+            android:id="@+id/action_userListFragment_to_addUserFragment"
+            app:destination="@id/addUserFragment" />
+        <action
+            android:id="@+id/action_userListFragment_to_detailUserFragment"
+            app:destination="@id/detailUserFragment" />
+        <action
+            android:id="@+id/action_userListFragment_to_findUserFragment"
+            app:destination="@id/findUserFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/findUserFragment"
+        android:name="com.example.inventory.fragment.FindUserFragment"
+        android:label="FindUserFragment" >
+        <action
+            android:id="@+id/action_findUserFragment_to_detailUserFragment"
+            app:destination="@id/detailUserFragment" />
     </fragment>
 </navigation>
